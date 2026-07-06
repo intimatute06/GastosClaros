@@ -1,0 +1,23 @@
+﻿# .NET
+bin/
+obj/
+*.user
+
+# Node (por si usamos algo de docx/tools)
+node_modules/
+
+# Python / Azure Functions
+__pycache__/
+*.pyc
+.venv/
+local.settings.json
+
+# Docker
+*.env
+.env
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
