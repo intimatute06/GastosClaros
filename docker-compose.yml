@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gastosclaros-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gastos_user
+      POSTGRES_PASSWORD: gastos_pass
+      POSTGRES_DB: gastosclaros
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - gastosclaros-net
+
+  redis:
+    image: redis:7
+    container_name: gastosclaros-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - gastosclaros-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gastosclaros-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - gastosclaros-net
+
+volumes:
+  postgres-data:
+
+networks:
+  gastosclaros-net:
+    driver: bridge
