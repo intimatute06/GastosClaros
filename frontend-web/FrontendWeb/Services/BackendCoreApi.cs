@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using FrontendWeb.Models;
 using FrontendWeb.Services.Interfaces;
 
@@ -56,6 +56,12 @@ namespace FrontendWeb.Services
             var response = await _http.PostAsJsonAsync("api/Gastos", dto);
             if (!response.IsSuccessStatusCode) return null;
             return await response.Content.ReadFromJsonAsync<GastoModel>();
+        }
+        public async Task<bool> ActualizarCategoriaGastoAsync(int gastoId, string categoria)
+        {
+            var body = new { categoria };
+            var response = await _http.PatchAsJsonAsync($"api/Gastos/{gastoId}/categoria", body);
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<List<SaldoModel>> GetSaldosPorGrupoAsync(int grupoId)

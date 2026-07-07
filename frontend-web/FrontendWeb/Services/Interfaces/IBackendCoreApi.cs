@@ -1,4 +1,4 @@
-﻿using FrontendWeb.Models;
+using FrontendWeb.Models;
 
 namespace FrontendWeb.Services.Interfaces
 {
@@ -13,6 +13,7 @@ namespace FrontendWeb.Services.Interfaces
 
         Task<List<GastoModel>> GetGastosPorGrupoAsync(int grupoId);
         Task<GastoModel?> CrearGastoAsync(CrearGastoModel dto);
+        Task<bool> ActualizarCategoriaGastoAsync(int gastoId, string categoria);
 
         Task<List<SaldoModel>> GetSaldosPorGrupoAsync(int grupoId);
 

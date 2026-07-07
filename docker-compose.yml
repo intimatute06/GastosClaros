@@ -32,6 +32,72 @@ services:
       - "15672:15672"
     networks:
       - gastosclaros-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-core:
+    build:
+      context: ./backend-core/BackendCore.Api
+      dockerfile: Dockerfile
+    container_name: gastosclaros-backend-core
+    restart: unless-stopped
+    ports:
+      - "5035:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=gastosclaros;Username=gastos_user;Password=gastos_pass
+      - ConnectionStrings__Redis=redis:6379
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - ModuloPago__BaseUrl=http://host.docker.internal:7071
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - gastosclaros-net
+
+  modulo-categoria:
+    build:
+      context: ./modulo-categoria/ModuloCategoria.Worker
+      dockerfile: Dockerfile
+    container_name: gastosclaros-modulo-categoria
+    restart: unless-stopped
+    environment:
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - BackendCore__BaseUrl=http://backend-core:8080
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend-core:
+        condition: service_started
+    networks:
+      - gastosclaros-net
+
+  frontend-web:
+    build:
+      context: ./frontend-web/FrontendWeb
+      dockerfile: Dockerfile
+    container_name: gastosclaros-frontend-web
+    restart: unless-stopped
+    ports:
+      - "5005:8080"
+    environment:
+      - BackendCore__BaseUrl=http://backend-core:8080
+    depends_on:
+      - backend-core
+    networks:
+      - gastosclaros-net
 
 volumes:
   postgres-data:
