@@ -1,0 +1,216 @@
+@page "/grupos/{GrupoId:int}"
+@rendermode InteractiveServer
+@using FrontendWeb.Models
+@using FrontendWeb.Services.Interfaces
+@inject IBackendCoreApi Api
+
+<PageTitle>GastosClaros - Detalle</PageTitle>
+
+@if (grupo == null)
+{
+    <p><em>Cargando grupo...</em></p>
+}
+else
+{
+    <h1>@grupo.Nombre</h1>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h3>Miembros</h3>
+            <EditForm Model="@nuevoMiembro" OnValidSubmit="CrearMiembro">
+                <InputText class="form-control mb-1" @bind-Value="nuevoMiembro.Nombre" placeholder="Nombre" />
+                <InputText class="form-control mb-1" @bind-Value="nuevoMiembro.Email" placeholder="Email" />
+                <button type="submit" class="btn btn-primary btn-sm">Agregar miembro</button>
+            </EditForm>
+
+            <ul class="list-group mt-2">
+                @foreach (var miembro in miembros)
+                {
+                    <li class="list-group-item">@miembro.Nombre (@miembro.Email)</li>
+                }
+            </ul>
+        </div>
+
+        <div class="col-md-8">
+            <h3>Gastos</h3>
+            <EditForm Model="@nuevoGasto" OnValidSubmit="CrearGasto">
+                <div class="row g-1 mb-2">
+                    <div class="col">
+                        <InputText class="form-control" @bind-Value="nuevoGasto.Descripcion" placeholder="Descripcion" />
+                    </div>
+                    <div class="col">
+                        <InputNumber class="form-control" @bind-Value="nuevoGasto.Monto" placeholder="Monto" />
+                    </div>
+                    <div class="col">
+                        <InputSelect class="form-select" @bind-Value="nuevoGasto.PagadoPorId">
+                            <option value="0">Quien pago...</option>
+                            @foreach (var miembro in miembros)
+                            {
+                                <option value="@miembro.Id">@miembro.Nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </div>
+                </div>
+            </EditForm>
+
+            @if (mensajeError != null)
+            {
+                <div class="alert alert-danger">@mensajeError</div>
+            }
+
+            <table class="table table-sm">
+                <thead>
+                    <tr><th>Descripcion</th><th>Monto</th><th>Pagado por</th><th>Categoria</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var gasto in gastos)
+                    {
+                        <tr>
+                            <td>@gasto.Descripcion</td>
+                            <td>$@gasto.Monto.ToString("0.00")</td>
+                            <td>@gasto.PagadoPorNombre</td>
+                            <td>@(gasto.Categoria ?? "Sin clasificar")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <h3>Saldos</h3>
+            <button class="btn btn-sm btn-outline-secondary mb-2" @onclick="CargarSaldos">Actualizar saldos</button>
+
+            @if (mensajePago != null)
+            {
+                <div class="alert @(pagoExitoso ? "alert-success" : "alert-warning")">@mensajePago</div>
+            }
+
+            <ul class="list-group">
+                @foreach (var saldo in saldos)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>@saldo.DeudorNombre</strong> le debe <strong>$@saldo.Monto.ToString("0.00")</strong> a <strong>@saldo.AcreedorNombre</strong>
+                        </span>
+                        <button class="btn btn-sm btn-success" disabled="@procesandoPago" @onclick="() => SaldarDeuda(saldo)">
+                            @(procesandoPago ? "Procesando..." : "Saldar")
+                        </button>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int GrupoId { get; set; }
+
+    private GrupoModel? grupo;
+    private List<MiembroModel> miembros = new();
+    private List<GastoModel> gastos = new();
+    private List<SaldoModel> saldos = new();
+    private CrearMiembroModel nuevoMiembro = new();
+    private CrearGastoModel nuevoGasto = new();
+    private string? mensajeError;
+    private string? mensajePago;
+    private bool pagoExitoso;
+    private bool procesandoPago;
+
+    protected override async Task OnInitializedAsync()
+    {
+        grupo = await Api.GetGrupoAsync(GrupoId);
+        nuevoGasto.GrupoId = GrupoId;
+        await CargarMiembros();
+        await CargarGastos();
+        await CargarSaldos();
+    }
+
+    private async Task CargarMiembros()
+    {
+        miembros = await Api.GetMiembrosPorGrupoAsync(GrupoId);
+    }
+
+    private async Task CargarGastos()
+    {
+        gastos = await Api.GetGastosPorGrupoAsync(GrupoId);
+    }
+
+    private async Task CargarSaldos()
+    {
+        saldos = await Api.GetSaldosPorGrupoAsync(GrupoId);
+    }
+
+    private async Task CrearMiembro()
+    {
+        nuevoMiembro.GrupoId = GrupoId;
+        var creado = await Api.CrearMiembroAsync(nuevoMiembro);
+        if (creado != null)
+        {
+            nuevoMiembro = new CrearMiembroModel();
+            await CargarMiembros();
+        }
+    }
+
+    private async Task CrearGasto()
+    {
+        mensajeError = null;
+
+        if (nuevoGasto.PagadoPorId == 0)
+        {
+            mensajeError = "Selecciona quien pago el gasto.";
+            return;
+        }
+
+        var creado = await Api.CrearGastoAsync(nuevoGasto);
+        if (creado == null)
+        {
+            mensajeError = "No se pudo registrar el gasto.";
+            return;
+        }
+
+        nuevoGasto = new CrearGastoModel { GrupoId = GrupoId };
+        await CargarGastos();
+        await CargarSaldos();
+    }
+
+    private async Task SaldarDeuda(SaldoModel saldo)
+    {
+        procesandoPago = true;
+        mensajePago = null;
+        StateHasChanged();
+
+        var deudaCreada = await Api.CrearDeudaAsync(new CrearDeudaModel
+        {
+            DeudorId = saldo.DeudorId,
+            AcreedorId = saldo.AcreedorId,
+            Monto = saldo.Monto
+        });
+
+        if (deudaCreada == null)
+        {
+            mensajePago = "No se pudo crear la deuda para saldar.";
+            pagoExitoso = false;
+            procesandoPago = false;
+            return;
+        }
+
+        var resultado = await Api.SaldarDeudaAsync(deudaCreada.Id);
+
+        if (resultado != null && resultado.Estado == "Saldada")
+        {
+            pagoExitoso = true;
+            mensajePago = $"Pago procesado: {saldo.DeudorNombre} salda " + saldo.Monto.ToString("0.00") + $" a {saldo.AcreedorNombre}. Referencia: {resultado.ReferenciaTransaccion}";
+        }
+        else
+        {
+            pagoExitoso = false;
+            mensajePago = "El pago simulado fallo. Intenta nuevamente.";
+        }
+
+        procesandoPago = false;
+        await CargarGastos();
+        await CargarSaldos();
+    }
+}

@@ -1,0 +1,101 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using FrontendWeb.Models
+@using FrontendWeb.Services.Interfaces
+@inject IBackendCoreApi Api
+@inject NavigationManager NavManager
+
+<PageTitle>GastosClaros - Grupos</PageTitle>
+
+<h1>Mis Grupos</h1>
+
+<EditForm Model="@nuevoGrupo" OnValidSubmit="CrearGrupo">
+    <div class="mb-3 d-flex gap-2">
+        <InputText class="form-control" @bind-Value="nuevoGrupo.Nombre" placeholder="Nombre del grupo (ej. Viaje a Banos)" />
+        <button type="submit" class="btn btn-primary">Crear grupo</button>
+    </div>
+</EditForm>
+
+@if (mensajeError != null)
+{
+    <div class="alert alert-danger">@mensajeError</div>
+}
+
+@if (grupos == null)
+{
+    <p><em>Cargando grupos...</em></p>
+}
+else if (grupos.Count == 0)
+{
+    <p>Todavia no tienes grupos. Crea el primero arriba.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Miembros</th>
+                <th>Creado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var grupo in grupos)
+            {
+                <tr>
+                    <td>@grupo.Nombre</td>
+                    <td>@grupo.CantidadMiembros</td>
+                    <td>@grupo.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalle(grupo.Id)">
+                            Ver detalle
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GrupoModel>? grupos;
+    private CrearGrupoModel nuevoGrupo = new();
+    private string? mensajeError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarGrupos();
+    }
+
+    private async Task CargarGrupos()
+    {
+        grupos = await Api.GetGruposAsync();
+    }
+
+    private async Task CrearGrupo()
+    {
+        mensajeError = null;
+
+        if (string.IsNullOrWhiteSpace(nuevoGrupo.Nombre))
+        {
+            mensajeError = "El nombre del grupo no puede estar vacio.";
+            return;
+        }
+
+        var creado = await Api.CrearGrupoAsync(nuevoGrupo);
+        if (creado == null)
+        {
+            mensajeError = "No se pudo crear el grupo. Verifica que el Backend Core este corriendo.";
+            return;
+        }
+
+        nuevoGrupo = new CrearGrupoModel();
+        await CargarGrupos();
+    }
+
+    private void VerDetalle(int grupoId)
+    {
+        NavManager.NavigateTo($"/grupos/{grupoId}");
+    }
+}
