@@ -1,4 +1,4 @@
-﻿using BackendCore.Api.DTOs;
+using BackendCore.Api.DTOs;
 
 namespace BackendCore.Api.Services.Interfaces
 {
@@ -7,5 +7,6 @@ namespace BackendCore.Api.Services.Interfaces
         Task<IEnumerable<GastoDto>> GetByGrupoIdAsync(int grupoId);
         Task<GastoDto?> GetByIdAsync(int id);
         Task<(GastoDto? gasto, string? error)> CreateAsync(CrearGastoDto dto);
+        Task<bool> ActualizarCategoriaAsync(int gastoId, string categoria);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BackendCore.Api.DTOs
+namespace BackendCore.Api.DTOs
 {
     public class GastoDto
     {
@@ -18,5 +18,9 @@
         public decimal Monto { get; set; }
         public int GrupoId { get; set; }
         public int PagadoPorId { get; set; }
+    }
+    public class ActualizarCategoriaDto
+    {
+        public string Categoria { get; set; } = string.Empty;
     }
 }

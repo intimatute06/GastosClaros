@@ -1,4 +1,4 @@
-﻿using BackendCore.Api.Models;
+using BackendCore.Api.Models;
 
 namespace BackendCore.Api.Repositories.Interfaces
 {
@@ -9,5 +9,6 @@ namespace BackendCore.Api.Repositories.Interfaces
         Task<Gasto> CreateAsync(Gasto gasto);
         Task<bool> GrupoExisteAsync(int grupoId);
         Task<bool> MiembroExisteAsync(int miembroId);
+        Task<bool> ActualizarCategoriaAsync(int gastoId, string categoria);
     }
 }

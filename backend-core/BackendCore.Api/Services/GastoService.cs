@@ -1,4 +1,4 @@
-﻿using BackendCore.Api.DTOs;
+using BackendCore.Api.DTOs;
 using BackendCore.Api.Models;
 using BackendCore.Api.Repositories.Interfaces;
 using BackendCore.Api.Services.Interfaces;
@@ -60,6 +60,10 @@ namespace BackendCore.Api.Services
             await _eventPublisher.PublishAsync(RoutingKey, evento);
 
             return (MapToDto(creado), null);
+        }
+        public async Task<bool> ActualizarCategoriaAsync(int gastoId, string categoria)
+        {
+            return await _repository.ActualizarCategoriaAsync(gastoId, categoria);
         }
 
         private static GastoDto MapToDto(Gasto gasto)

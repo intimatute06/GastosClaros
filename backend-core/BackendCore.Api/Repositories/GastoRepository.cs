@@ -1,4 +1,4 @@
-﻿using BackendCore.Api.Data;
+using BackendCore.Api.Data;
 using BackendCore.Api.Models;
 using BackendCore.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +48,15 @@ namespace BackendCore.Api.Repositories
         public async Task<bool> MiembroExisteAsync(int miembroId)
         {
             return await _context.Miembros.AnyAsync(m => m.Id == miembroId);
+        }
+        public async Task<bool> ActualizarCategoriaAsync(int gastoId, string categoria)
+        {
+            var gasto = await _context.Gastos.FindAsync(gastoId);
+            if (gasto == null) return false;
+
+            gasto.Categoria = categoria;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

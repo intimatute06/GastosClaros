@@ -1,4 +1,4 @@
-﻿using BackendCore.Api.DTOs;
+using BackendCore.Api.DTOs;
 using BackendCore.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +36,13 @@ namespace BackendCore.Api.Controllers
             var (creado, error) = await _service.CreateAsync(dto);
             if (error != null) return BadRequest(new { mensaje = error });
             return CreatedAtAction(nameof(GetById), new { id = creado!.Id }, creado);
+        }
+        [HttpPatch("{id}/categoria")]
+        public async Task<IActionResult> ActualizarCategoria(int id, [FromBody] ActualizarCategoriaDto dto)
+        {
+            var actualizado = await _service.ActualizarCategoriaAsync(id, dto.Categoria);
+            if (!actualizado) return NotFound();
+            return NoContent();
         }
     }
 }
