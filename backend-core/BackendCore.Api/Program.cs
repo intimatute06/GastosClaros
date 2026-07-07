@@ -17,6 +17,13 @@ builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.IMiembroService, 
 builder.Services.AddSingleton<BackendCore.Api.Services.Interfaces.IEventPublisher, BackendCore.Api.Services.RabbitMqEventPublisher>();
 builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.IGastoRepository, BackendCore.Api.Repositories.GastoRepository>();
 builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.IGastoService, BackendCore.Api.Services.GastoService>();
+builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.IDeudaRepository, BackendCore.Api.Repositories.DeudaRepository>();
+builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.IDeudaService, BackendCore.Api.Services.DeudaService>();
+builder.Services.AddHttpClient<BackendCore.Api.Services.Interfaces.IPagoLambdaClient, BackendCore.Api.Services.PagoLambdaClient>(client =>
+{
+    var baseUrl = builder.Configuration["ModuloPago:BaseUrl"] ?? "http://localhost:7071";
+    client.BaseAddress = new Uri(baseUrl);
+});
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
