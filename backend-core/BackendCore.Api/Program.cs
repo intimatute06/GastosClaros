@@ -14,6 +14,9 @@ builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.IGrupoReposit
 builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.IGrupoService, BackendCore.Api.Services.GrupoService>();
 builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.IMiembroRepository, BackendCore.Api.Repositories.MiembroRepository>();
 builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.IMiembroService, BackendCore.Api.Services.MiembroService>();
+builder.Services.AddSingleton<BackendCore.Api.Services.Interfaces.IEventPublisher, BackendCore.Api.Services.RabbitMqEventPublisher>();
+builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.IGastoRepository, BackendCore.Api.Repositories.GastoRepository>();
+builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.IGastoService, BackendCore.Api.Services.GastoService>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
