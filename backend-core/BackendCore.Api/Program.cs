@@ -24,6 +24,11 @@ builder.Services.AddHttpClient<BackendCore.Api.Services.Interfaces.IPagoLambdaCl
     var baseUrl = builder.Configuration["ModuloPago:BaseUrl"] ?? "http://localhost:7071";
     client.BaseAddress = new Uri(baseUrl);
 });
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+    StackExchange.Redis.ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379"));
+builder.Services.AddSingleton<BackendCore.Api.Services.Interfaces.ICacheService, BackendCore.Api.Services.RedisCacheService>();
+builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.ISaldoRepository, BackendCore.Api.Repositories.SaldoRepository>();
+builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.ISaldoService, BackendCore.Api.Services.SaldoService>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo

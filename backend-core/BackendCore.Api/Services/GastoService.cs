@@ -1,23 +1,25 @@
-using BackendCore.Api.DTOs;
+﻿using BackendCore.Api.DTOs;
 using BackendCore.Api.Models;
 using BackendCore.Api.Repositories.Interfaces;
 using BackendCore.Api.Services.Interfaces;
 
 namespace BackendCore.Api.Services
 {
-    // Evento que se publica a RabbitMQ cuando se registra un gasto
+    // Evento publicado a RabbitMQ cuando se registra un gasto
     public record GastoRegistradoEvento(int GastoId, int GrupoId, decimal Monto, string Descripcion, DateTime Fecha);
 
     public class GastoService : IGastoService
     {
         private readonly IGastoRepository _repository;
         private readonly IEventPublisher _eventPublisher;
+        private readonly ISaldoService _saldoService;
         private const string RoutingKey = "gasto.registrado";
 
-        public GastoService(IGastoRepository repository, IEventPublisher eventPublisher)
+        public GastoService(IGastoRepository repository, IEventPublisher eventPublisher, ISaldoService saldoService)
         {
             _repository = repository;
             _eventPublisher = eventPublisher;
+            _saldoService = saldoService;
         }
 
         public async Task<IEnumerable<GastoDto>> GetByGrupoIdAsync(int grupoId)
@@ -59,8 +61,12 @@ namespace BackendCore.Api.Services
 
             await _eventPublisher.PublishAsync(RoutingKey, evento);
 
+            // Cada gasto nuevo cambia los saldos del grupo, asi que se recalculan de inmediato
+            await _saldoService.RecalcularYObtenerAsync(creado.GrupoId);
+
             return (MapToDto(creado), null);
         }
+
         public async Task<bool> ActualizarCategoriaAsync(int gastoId, string categoria)
         {
             return await _repository.ActualizarCategoriaAsync(gastoId, categoria);
