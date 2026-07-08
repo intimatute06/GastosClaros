@@ -8,54 +8,54 @@
 <PageTitle>GastosClaros - Grupos</PageTitle>
 
 <h1>Mis Grupos</h1>
+<p class="page-subtitle">Selecciona un grupo para ver el detalle o crea uno nuevo.</p>
 
-<EditForm Model="@nuevoGrupo" OnValidSubmit="CrearGrupo">
-    <div class="mb-3 d-flex gap-2">
-        <InputText class="form-control" @bind-Value="nuevoGrupo.Nombre" placeholder="Nombre del grupo (ej. Viaje a Banos)" />
-        <button type="submit" class="btn btn-primary">Crear grupo</button>
-    </div>
-</EditForm>
+<div class="card-surface mb-4">
+    <div class="section-label">Nuevo grupo</div>
+    <EditForm Model="@nuevoGrupo" OnValidSubmit="CrearGrupo">
+        <div class="d-flex gap-2 flex-wrap">
+            <InputText class="form-control" style="flex: 1; min-width: 220px;" @bind-Value="nuevoGrupo.Nombre" placeholder="Nombre del grupo (ej. Viaje a Banos)" />
+            <button type="submit" class="btn btn-primary">Crear grupo</button>
+        </div>
+    </EditForm>
 
-@if (mensajeError != null)
-{
-    <div class="alert alert-danger">@mensajeError</div>
-}
+    @if (mensajeError != null)
+    {
+        <div class="alert alert-danger mt-3 mb-0">@mensajeError</div>
+    }
+</div>
 
 @if (grupos == null)
 {
-    <p><em>Cargando grupos...</em></p>
+    <div class="loading-state">
+        <div class="spinner-border spinner-inline" role="status" aria-hidden="true"></div>
+        <span>Cargando grupos...</span>
+    </div>
 }
 else if (grupos.Count == 0)
 {
-    <p>Todavia no tienes grupos. Crea el primero arriba.</p>
+    <div class="empty-state card-surface">
+        <span class="empty-icon">📋</span>
+        <p class="mb-0">Todavia no tienes grupos. Crea el primero arriba.</p>
+    </div>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Miembros</th>
-                <th>Creado</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var grupo in grupos)
-            {
-                <tr>
-                    <td>@grupo.Nombre</td>
-                    <td>@grupo.CantidadMiembros</td>
-                    <td>@grupo.FechaCreacion.ToString("dd/MM/yyyy")</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalle(grupo.Id)">
-                            Ver detalle
-                        </button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="grupos-grid">
+        @foreach (var grupo in grupos)
+        {
+            <div class="card-surface grupo-card">
+                <h3 class="mb-2">@grupo.Nombre</h3>
+                <div class="grupo-meta">
+                    <span>👥 @grupo.CantidadMiembros miembro@(grupo.CantidadMiembros == 1 ? "" : "s")</span>
+                    <span>📅 @grupo.FechaCreacion.ToString("dd/MM/yyyy")</span>
+                </div>
+                <button class="btn btn-outline-primary btn-sm mt-3" @onclick="() => VerDetalle(grupo.Id)">
+                    Ver detalle
+                </button>
+            </div>
+        }
+    </div>
 }
 
 @code {

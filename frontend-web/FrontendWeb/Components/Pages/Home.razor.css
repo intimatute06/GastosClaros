@@ -1,0 +1,30 @@
+.grupos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.grupo-card {
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+    .grupo-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+.grupo-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 991.98px) {
+    .grupos-grid {
+        grid-template-columns: 1fr;
+    }
+}

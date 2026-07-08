@@ -8,106 +8,161 @@
 
 @if (grupo == null)
 {
-    <p><em>Cargando grupo...</em></p>
+    <div class="loading-state">
+        <div class="spinner-border spinner-inline" role="status" aria-hidden="true"></div>
+        <span>Cargando grupo...</span>
+    </div>
 }
 else
 {
+    <a href="/" class="back-link">← Volver a mis grupos</a>
     <h1>@grupo.Nombre</h1>
+    <p class="page-subtitle">Miembros, gastos y saldos del grupo.</p>
 
-    <div class="row">
-        <div class="col-md-4">
-            <h3>Miembros</h3>
-            <EditForm Model="@nuevoMiembro" OnValidSubmit="CrearMiembro">
-                <InputText class="form-control mb-1" @bind-Value="nuevoMiembro.Nombre" placeholder="Nombre" />
-                <InputText class="form-control mb-1" @bind-Value="nuevoMiembro.Email" placeholder="Email" />
-                <button type="submit" class="btn btn-primary btn-sm">Agregar miembro</button>
-            </EditForm>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card-surface h-100">
+                <div class="section-label">Miembros</div>
+                <EditForm Model="@nuevoMiembro" OnValidSubmit="CrearMiembro">
+                    <InputText class="form-control mb-2" @bind-Value="nuevoMiembro.Nombre" placeholder="Nombre" />
+                    <InputText class="form-control mb-2" @bind-Value="nuevoMiembro.Email" placeholder="Email" />
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Agregar miembro</button>
+                </EditForm>
 
-            <ul class="list-group mt-2">
-                @foreach (var miembro in miembros)
-                {
-                    <li class="list-group-item">@miembro.Nombre (@miembro.Email)</li>
-                }
-            </ul>
+                <div class="miembros-list mt-3">
+                    @foreach (var miembro in miembros)
+                    {
+                        <div class="miembro-item">
+                            <span class="miembro-avatar">@ObtenerIniciales(miembro.Nombre)</span>
+                            <div class="miembro-info">
+                                <span class="miembro-nombre">@miembro.Nombre</span>
+                                <span class="miembro-email">@miembro.Email</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-8">
-            <h3>Gastos</h3>
-            <EditForm Model="@nuevoGasto" OnValidSubmit="CrearGasto">
-                <div class="row g-1 mb-2">
-                    <div class="col">
-                        <InputText class="form-control" @bind-Value="nuevoGasto.Descripcion" placeholder="Descripcion" />
+        <div class="col-lg-8">
+            <div class="card-surface mb-4">
+                <div class="section-label">Registrar gasto</div>
+                <EditForm Model="@nuevoGasto" OnValidSubmit="CrearGasto">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md">
+                            <InputText class="form-control" @bind-Value="nuevoGasto.Descripcion" placeholder="Descripcion" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <InputNumber class="form-control" @bind-Value="nuevoGasto.Monto" placeholder="Monto" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <InputSelect class="form-select" @bind-Value="nuevoGasto.PagadoPorId">
+                                <option value="0">Quien pago...</option>
+                                @foreach (var miembro in miembros)
+                                {
+                                    <option value="@miembro.Id">@miembro.Nombre</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-12 col-md-auto">
+                            <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                        </div>
                     </div>
-                    <div class="col">
-                        <InputNumber class="form-control" @bind-Value="nuevoGasto.Monto" placeholder="Monto" />
-                    </div>
-                    <div class="col">
-                        <InputSelect class="form-select" @bind-Value="nuevoGasto.PagadoPorId">
-                            <option value="0">Quien pago...</option>
-                            @foreach (var miembro in miembros)
-                            {
-                                <option value="@miembro.Id">@miembro.Nombre</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary">Registrar</button>
-                    </div>
-                </div>
-            </EditForm>
+                </EditForm>
 
-            @if (mensajeError != null)
-            {
-                <div class="alert alert-danger">@mensajeError</div>
-            }
-
-            <table class="table table-sm">
-                <thead>
-                    <tr><th>Descripcion</th><th>Monto</th><th>Pagado por</th><th>Categoria</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var gasto in gastos)
-                    {
-                        <tr>
-                            <td>@gasto.Descripcion</td>
-                            <td>$@gasto.Monto.ToString("0.00")</td>
-                            <td>@gasto.PagadoPorNombre</td>
-                            <td>
-                                <select class="form-select form-select-sm" value="@(gasto.Categoria ?? "")" @onchange="(e) => CambiarCategoria(gasto, e.Value?.ToString())">
-                                    <option value="">Sin clasificar</option>
-                                    <option value="Comida">Comida</option>
-                                    <option value="Transporte">Transporte</option>
-                                    <option value="Alojamiento">Alojamiento</option>
-                                    <option value="Entretenimiento">Entretenimiento</option>
-                                    <option value="Otros">Otros</option>
-                                </select>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-
-            <h3>Saldos</h3>
-            <button class="btn btn-sm btn-outline-secondary mb-2" @onclick="CargarSaldos">Actualizar saldos</button>
-
-            @if (mensajePago != null)
-            {
-                <div class="alert @(pagoExitoso ? "alert-success" : "alert-warning")">@mensajePago</div>
-            }
-
-            <ul class="list-group">
-                @foreach (var saldo in saldos)
+                @if (mensajeError != null)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>
-                            <strong>@saldo.DeudorNombre</strong> le debe <strong>$@saldo.Monto.ToString("0.00")</strong> a <strong>@saldo.AcreedorNombre</strong>
-                        </span>
-                        <button class="btn btn-sm btn-success" disabled="@procesandoPago" @onclick="() => SaldarDeuda(saldo)">
-                            @(procesandoPago ? "Procesando..." : "Saldar")
-                        </button>
-                    </li>
+                    <div class="alert alert-danger mt-3 mb-0">@mensajeError</div>
                 }
-            </ul>
+            </div>
+
+            <div class="card-surface mb-4">
+                <div class="section-label">Gastos</div>
+
+                @if (gastos.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">🧾</span>
+                        <p class="mb-0">Todavia no hay gastos registrados.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="gastos-list">
+                        @foreach (var gasto in gastos)
+                        {
+                            var badge = ObtenerBadgeCategoria(gasto.Categoria);
+                            <div class="gasto-item">
+                                <div class="gasto-main">
+                                    <span class="gasto-descripcion">@gasto.Descripcion</span>
+                                    <span class="gasto-pagador">Pagado por @gasto.PagadoPorNombre</span>
+                                </div>
+                                <div class="gasto-side">
+                                    <span class="gasto-monto">$@gasto.Monto.ToString("0.00")</span>
+                                    <span class="badge-categoria @badge.CssClass">@badge.Emoji @(string.IsNullOrWhiteSpace(gasto.Categoria) ? "Sin clasificar" : gasto.Categoria)</span>
+                                    <select class="form-select form-select-sm categoria-select" value="@(gasto.Categoria ?? "")" @onchange="(e) => CambiarCategoria(gasto, e.Value?.ToString())">
+                                        <option value="">Sin clasificar</option>
+                                        <option value="Comida">Comida</option>
+                                        <option value="Transporte">Transporte</option>
+                                        <option value="Alojamiento">Alojamiento</option>
+                                        <option value="Entretenimiento">Entretenimiento</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="card-surface">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="section-label mb-0">Saldos</div>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="CargarSaldos">Actualizar saldos</button>
+                </div>
+
+                @if (mensajePago != null)
+                {
+                    <div class="alert @(pagoExitoso ? "alert-success" : "alert-warning")">@mensajePago</div>
+                }
+
+                @if (saldos.Count == 0)
+                {
+                    <div class="empty-state">
+                        <span class="empty-icon">✅</span>
+                        <p class="mb-0">No hay saldos pendientes.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="saldos-list">
+                        @foreach (var saldo in saldos)
+                        {
+                            <div class="balance-row card-surface saldo-item">
+                                <div class="balance-parties">
+                                    <span class="balance-chip balance-chip-deudor">@saldo.DeudorNombre</span>
+                                    <span class="balance-arrow">
+                                        <span>$@saldo.Monto.ToString("0.00")</span>
+                                        <span>→</span>
+                                    </span>
+                                    <span class="balance-chip balance-chip-acreedor">@saldo.AcreedorNombre</span>
+                                </div>
+                                <button class="btn btn-sm btn-success" disabled="@procesandoPago" @onclick="() => SaldarDeuda(saldo)">
+                                    @if (procesandoPago)
+                                    {
+                                        <span class="spinner-border spinner-border-sm spinner-inline me-1" role="status" aria-hidden="true"></span>
+                                        <span>Procesando...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Saldar</span>
+                                    }
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
     </div>
 }
@@ -126,6 +181,27 @@ else
     private string? mensajePago;
     private bool pagoExitoso;
     private bool procesandoPago;
+
+    private static (string Emoji, string CssClass) ObtenerBadgeCategoria(string? categoria) => categoria switch
+    {
+        "Comida" => ("🍔", "badge-comida"),
+        "Transporte" => ("🚗", "badge-transporte"),
+        "Alojamiento" => ("🏠", "badge-alojamiento"),
+        "Entretenimiento" => ("🎬", "badge-entretenimiento"),
+        "Otros" => ("📦", "badge-otros"),
+        _ => ("❔", "badge-sinclasificar"),
+    };
+
+    private static string ObtenerIniciales(string nombre)
+    {
+        var partes = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return partes.Length switch
+        {
+            0 => "?",
+            1 => partes[0][..Math.Min(2, partes[0].Length)].ToUpperInvariant(),
+            _ => $"{partes[0][0]}{partes[^1][0]}".ToUpperInvariant(),
+        };
+    }
 
     protected override async Task OnInitializedAsync()
     {
