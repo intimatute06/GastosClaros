@@ -29,6 +29,9 @@ builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
 builder.Services.AddSingleton<BackendCore.Api.Services.Interfaces.ICacheService, BackendCore.Api.Services.RedisCacheService>();
 builder.Services.AddScoped<BackendCore.Api.Repositories.Interfaces.ISaldoRepository, BackendCore.Api.Repositories.SaldoRepository>();
 builder.Services.AddScoped<BackendCore.Api.Services.Interfaces.ISaldoService, BackendCore.Api.Services.SaldoService>();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>(name: "postgresql")
+    .AddCheck<BackendCore.Api.HealthChecks.RedisHealthCheck>("redis");
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
@@ -51,5 +54,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();

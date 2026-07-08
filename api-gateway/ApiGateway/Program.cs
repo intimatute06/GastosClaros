@@ -13,11 +13,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 app.UseCors("SwaggerHub");
 
 app.MapGet("/", () => "GastosClaros API Gateway - activo");
+
+app.MapHealthChecks("/health");
 
 app.MapReverseProxy();
 

@@ -14,6 +14,8 @@ builder.Services.AddHttpClient<IBackendCoreApi, BackendCoreApi>(client =>
     client.BaseAddress = new Uri(baseUrl);
 });
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,6 +31,8 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
+
+app.MapHealthChecks("/health");
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
