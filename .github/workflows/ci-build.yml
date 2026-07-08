@@ -1,0 +1,33 @@
+﻿name: CI - Build GastosClaros
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - { name: "Backend Core", path: "backend-core/BackendCore.Api" }
+          - { name: "Modulo Categoria", path: "modulo-categoria/ModuloCategoria.Worker" }
+          - { name: "Frontend Web", path: "frontend-web/FrontendWeb" }
+          - { name: "API Gateway", path: "api-gateway/ApiGateway" }
+
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependencias - ${{ matrix.project.name }}
+        run: dotnet restore ${{ matrix.project.path }}
+
+      - name: Compilar - ${{ matrix.project.name }}
+        run: dotnet build ${{ matrix.project.path }} --no-restore --configuration Release
